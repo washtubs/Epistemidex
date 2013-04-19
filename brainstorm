@@ -1,0 +1,132 @@
+GOAL:
+create a program which makes knowledge articles easy to record and recall,
+and more specifically making problem/solution articles simpler to retrieve
+and enact their solutions.
+This program is intended to manage a personal, local database of articles created
+by the user or others. It's usefulness will be low at first but should
+compound with continued use.
+The idea is that since tags are defined by the user, the tagbase can respect
+both the limits and extent of the users vocabulary
+
+Nouns
+Articles
+
+Articles can be defined using strict heirarchies
++:
+    Automatic heirarchical tag generation,
+    heirarchy tags make searches faster, since pruning is more significant
+-:
+    automatic tags are redundent and overly restricting
+
+Articles can be defined using loose heirarchies
++:
+    searches can still be fast.
+    tags can be more like suggestions
+-:
+    gives tag use too much freedom?
+
+Heirarchy helps with specifying
+"siblinghood" indicates similarity, but not the other way
+
+
+Tags: "synonyms" map to a central tag
+Use discretion here. Unless they connote and denote the exact same thing
+they are not synonyms. They are probably just be similar.
+
+generate as a suggestion if they are "similar".
+
+The tag needs to be an extensible object
+
+How should articles be organized?
+    probably files, and not database blobs.
+    This is more sensible for a user. and allows for easy editing solutions.
+    Displaying and navigating within the interface will also be easy.
+    Formatting may be kind of wierd though. consider having some a .meta file
+    for each article.
+Article
+    layman readable. few special tags.
+MetaArticle
+    contains various information.
+        Tags
+        date
+    extensible format (possibly use config file format)
+There should be an articles directory which is completely self contained.
+    Any kind of database constructed from the directory should simply be a means of
+    caching and fast access.
+    Tag database shall be self contained, not relying on a mysql server or anything like that.
+    DB should be sensitive to any changes in the Articles directory.
+Tags file
+    will keep a sorted list of all tags.
+Cache DB
+    Each entry corresponds to an article
+    is a sorted list of tags and the article's associated filename.
+    It's path is assumed to be in the Articles directory.
+
+
+ARCHITECTURE
+FILES:
+$HOMEDIR/
+    articles/
+        article1
+        article1.meta
+        article2
+        article2.meta
+    tags
+
+CLASSES
+    Interface related.
+    Interface - static
+        handles the main interface loop.
+        has an input handling function.
+        Stores information relevant to the logic of the display system.
+    Display - static; state machine
+        init() refresh()
+        consists of windows. Responsible for everything ncurses
+        uses the data in each window to and uses the window's
+        location and dimension to display their contents relative
+        to the terminal itself.
+    Window - state machine; non-static; implements InputHandler
+        handles the contents of the display
+        contents will be a generic string or vector of strings
+        contents will be processed for tags. allowing for selectable
+        text, which can issue commands to the system.
+        tagged text will be registered as special objects that can be
+        selected, deselected, activated, deactivated.
+    /*DropDown - state machine; non-static; implements InputHandler*/
+        /*Like a window, but no border and sits on top layer*/
+
+    FileIO - static
+        ArticleReader
+        MetaArticleReader
+        MetaArticleWriter
+        TagsReader
+        TagsWriter
+
+    SearchEngine -static
+        Class of related functions
+        TagSearch
+        ArticleSearch(vector<pair<tag,importance>>)
+            returns vector<Article> sorted by relevance.
+
+    DBCache - static; state machine
+        Lists (unordered)
+            articles
+            tags
+        Maps
+            article_name -> tags
+            tag_name -> articles
+            article_name -> article
+            tag_name -> tag
+        Build articles and tags and populate the lists using the FileReaders
+        Use the lists to construct the maps.
+
+    Tag - non-static
+        string name
+        vector<Tag> synonyms
+        vector<Tag> similar
+
+    Articles - non-static
+        string name
+        vector<Tag> tags
+        retrieve()
+
